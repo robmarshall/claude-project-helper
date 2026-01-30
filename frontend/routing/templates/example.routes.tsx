@@ -13,6 +13,11 @@ const PageReportDetail = lazy(
 );
 
 // ============================================================================
+// TEMPLATE COMPONENTS (receive props via routes)
+// ============================================================================
+const ListingTemplate = lazy(() => import("~/templates/ListingTemplate"));
+
+// ============================================================================
 // ROUTE DEFINITION
 // ============================================================================
 
@@ -38,6 +43,24 @@ export const dashboardRoutes: RouteObject = {
 
     // Dynamic route with parameter
     { path: "reports/:reportId", Component: PageReportDetail },
+  ],
+};
+
+// ============================================================================
+// TEMPLATE WITH PROPS PATTERN
+// ============================================================================
+// Use inline arrow functions with Component prop to pass props to templates.
+// This avoids creating separate page components for each variant.
+
+export const listingRoutes: RouteObject = {
+  path: "listings",
+  children: [
+    { path: "active", Component: () => <ListingTemplate status="active" /> },
+    { path: "draft", Component: () => <ListingTemplate status="draft" /> },
+    {
+      path: "archived",
+      Component: () => <ListingTemplate status="archived" />,
+    },
   ],
 };
 

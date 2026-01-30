@@ -2,12 +2,19 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 // ============================================================================
-// LAYOUT COMPONENTS (not lazy loaded - needed immediately)
+// LAYOUT COMPONENTS
 // ============================================================================
+// Option 1: Direct import (critical layouts, smaller apps)
 import LayoutRoot from "~/LayoutRoot";
-import LayoutPrivate from "~/pages/private/LayoutPrivate";
-import LayoutAuth from "~/pages/auth/LayoutAuth";
 import NotFoundPage from "~/pages/NotFoundPage";
+
+// Option 2: Lazy load layouts (code splitting, larger apps)
+// React Router handles Suspense automatically for Component prop
+const LayoutProviderWrapped = lazy(
+  () => import("~/layouts/LayoutProviderWrapped")
+);
+const LayoutPrivate = lazy(() => import("~/pages/private/LayoutPrivate"));
+const LayoutAuth = lazy(() => import("~/pages/auth/LayoutAuth"));
 
 // ============================================================================
 // ROUTE MODULES
@@ -20,6 +27,13 @@ import { settingsRoutes } from "~/routes/settings.routes";
 // LAZY LOADED PAGES
 // ============================================================================
 const PageHome = lazy(() => import("~/pages/private/PageHome"));
+const PageFormPreview = lazy(() => import("~/pages/forms/PageFormPreview"));
+
+// ============================================================================
+// ISOLATED ROUTE PROVIDERS
+// ============================================================================
+// For routes that need different providers than the main app
+import { LocalSessionProvider } from "~/providers/LocalSessionProvider";
 
 // ============================================================================
 // ROUTER CONFIGURATION
@@ -31,32 +45,48 @@ export const router = createBrowserRouter(
       Component: LayoutRoot,
       errorElement: <NotFoundPage />,
       children: [
-        // ==================================================================
-        // AUTHENTICATION ROUTES
-        // ==================================================================
-        authRoutes,
-
-        // ==================================================================
-        // PRIVATE AUTHENTICATED ROUTES
-        // ==================================================================
+        // ================================================================
+        // ISOLATED ROUTES (outside main provider tree)
+        // ================================================================
+        // Use for: form previews, OAuth callbacks, embedded widgets
         {
-          Component: LayoutPrivate,
+          path: "forms/:formId/preview",
+          element: (
+            <LocalSessionProvider>
+              <Suspense fallback={null}>
+                <PageFormPreview />
+              </Suspense>
+            </LocalSessionProvider>
+          ),
+        },
+
+        // ================================================================
+        // MAIN APPLICATION (inside providers)
+        // ================================================================
+        {
+          Component: LayoutProviderWrapped,
           children: [
-            // Home Page
+            // ==============================================================
+            // AUTHENTICATION ROUTES
+            // ==============================================================
+            authRoutes,
+
+            // ==============================================================
+            // PRIVATE AUTHENTICATED ROUTES
+            // ==============================================================
             {
-              path: "/",
-              element: (
-                <Suspense fallback={null}>
-                  <PageHome />
-                </Suspense>
-              ),
+              Component: LayoutPrivate,
+              children: [
+                // Home Page
+                { path: "/", Component: PageHome },
+
+                // Dashboard Routes
+                dashboardRoutes,
+
+                // Settings Routes
+                ...settingsRoutes,
+              ],
             },
-
-            // Dashboard Routes
-            dashboardRoutes,
-
-            // Settings Routes
-            ...settingsRoutes,
           ],
         },
       ],
@@ -64,7 +94,7 @@ export const router = createBrowserRouter(
   ],
   {
     // Optional: Set basename if app runs in a subdirectory
-    // basename: "/app",
+    basename: "/app",
   }
 );
 

@@ -232,14 +232,18 @@ const PageProfile = lazy(() => import("~/pages/Profile"));
 
 ### Layout Components
 
-Layout components should NOT be lazy loaded (they're needed immediately):
+Layout components CAN be lazy loaded - React Router handles Suspense automatically for the `Component` prop:
 
 ```tsx
-// Import directly - not lazy
+// Option 1: Direct import (critical layouts, smaller apps)
 import LayoutPrivate from "~/pages/private/LayoutPrivate";
 import LayoutAuth from "~/pages/auth/LayoutAuth";
 
-// Use directly
+// Option 2: Lazy load (code splitting, larger apps)
+const LayoutPrivate = lazy(() => import("~/pages/private/LayoutPrivate"));
+const LayoutAuth = lazy(() => import("~/pages/auth/LayoutAuth"));
+
+// Both work with Component prop - React Router handles Suspense
 { Component: LayoutPrivate, children: [...] }
 ```
 
@@ -424,19 +428,81 @@ const { reportId } = useParams<ReportParams>();
 
 ### Isolated Routes (Outside Provider Tree)
 
-For routes that need isolation from the main provider tree (e.g., form previews):
+For routes that need isolation from the main provider tree. Common use cases:
+- Form previews that need clean state
+- OAuth callbacks that shouldn't trigger auth redirects
+- Embedded widgets or iframe content
+- Public shareable views
 
 ```tsx
+// In router.tsx - place BEFORE LayoutProviderWrapped
 {
-  // Outside LayoutProviderWrapped
-  path: "forms/:formId/preview",
-  element: (
-    <LocalSessionProvider>
-      <PageFormPreview />
-    </LocalSessionProvider>
-  ),
+  Component: LayoutRoot,
+  children: [
+    // ISOLATED ROUTES (outside main providers)
+    {
+      path: "forms/:formId/preview",
+      element: (
+        <LocalSessionProvider>
+          <PageFormPreview />
+        </LocalSessionProvider>
+      ),
+    },
+    {
+      path: "oauth/callback",
+      Component: PageOAuthCallback,
+    },
+
+    // MAIN APPLICATION (inside providers)
+    {
+      Component: LayoutProviderWrapped,
+      children: [
+        // ... auth and private routes
+      ],
+    },
+  ],
 }
 ```
+
+### Template Components with Props
+
+When you need to pass props to a component in routes, use an inline arrow function with the `Component` prop:
+
+```tsx
+// Template component that accepts props
+const ListingTemplate = lazy(() => import("~/templates/ListingTemplate"));
+
+// Pass props via inline arrow function
+{
+  path: "listings",
+  children: [
+    { path: "active", Component: () => <ListingTemplate status="active" /> },
+    { path: "draft", Component: () => <ListingTemplate status="draft" /> },
+    { path: "archived", Component: () => <ListingTemplate status="archived" /> },
+  ],
+}
+```
+
+This pattern is useful when:
+- Multiple routes use the same component with different configurations
+- You want to avoid creating separate page components for each variant
+- The only difference between routes is prop values
+
+### RedirectPageRoute Pattern
+
+For declarative redirects that support dynamic parameters:
+
+```tsx
+import RedirectPageRoute from "~/components/RedirectPageRoute";
+
+// Simple redirect
+{ path: "old-path", element: <RedirectPageRoute to="/new-path" /> }
+
+// With dynamic parameters - :param placeholders are replaced
+{ path: "users/:userId/profile", element: <RedirectPageRoute to="/profiles/:userId" /> }
+```
+
+See `templates/RedirectPageRoute.tsx` for implementation.
 
 ### Index Route vs Path Route
 

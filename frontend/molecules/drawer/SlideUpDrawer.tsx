@@ -177,7 +177,7 @@ export default SlideUpDrawer;
 // EXAMPLE USAGE - BASIC
 // =============================================================================
 //
-// import SlideUpDrawer from "~/components/SlideUpDrawer";
+// import SlideUpDrawer from "~/molecules/drawer/SlideUpDrawer";
 // import useDrawers from "~/hooks/useDrawers";
 //
 // const MyComponent = () => {

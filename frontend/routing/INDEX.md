@@ -33,9 +33,11 @@ All templates are in the `templates/` subdirectory.
 |------|---------|
 | router.tsx | Main router configuration |
 | LayoutRoot.tsx | Application root with providers |
+| LayoutProviderWrapped.tsx | Session/auth provider wrapper |
 | LayoutPrivate.tsx | Protected routes (requires auth) |
 | LayoutAuth.tsx | Auth pages (redirects if logged in) |
 | example.routes.tsx | Domain routes file pattern |
+| RedirectPageRoute.tsx | Declarative redirect component |
 
 ## CORE PATTERNS
 
@@ -89,7 +91,7 @@ const LayoutAuth = () => {
 // Page components - lazy load
 const PageDashboard = lazy(() => import("~/pages/Dashboard"));
 
-// In routes
+// Option 1: Using `element` prop - requires Suspense wrapper
 {
   path: "dashboard",
   element: (
@@ -98,9 +100,25 @@ const PageDashboard = lazy(() => import("~/pages/Dashboard"));
     </Suspense>
   ),
 }
+
+// Option 2: Using `Component` prop - React Router handles Suspense automatically
+{ path: "dashboard", Component: PageDashboard }
 ```
 
-### 5. Domain Routes File
+### 5. Template Components with Props
+
+```tsx
+// Template component that accepts props
+const ListingTemplate = lazy(() => import("~/templates/ListingTemplate"));
+
+// Use Component with inline arrow function to pass props
+{
+  path: "active",
+  Component: () => <ListingTemplate status="active" />,
+}
+```
+
+### 6. Domain Routes File
 
 ```tsx
 // dashboard.routes.tsx
@@ -121,8 +139,8 @@ export const dashboardRoutes: RouteObject = {
 ## CORE RULES
 
 1. Use `createBrowserRouter` for React Router v6
-2. Always wrap lazy components in `Suspense` with `fallback={null}`
-3. Layout components don't need lazy loading (needed immediately)
+2. When using `element` prop with lazy components, wrap in `Suspense` with `fallback={null}`
+3. Layout components CAN be lazy loaded - React Router handles Suspense for `Component` prop
 4. Export `RouteObject` type for TypeScript safety
 5. Use `Component` prop (not `element`) when component doesn't need props
 6. Check auth state before rendering content, return `null` during loading

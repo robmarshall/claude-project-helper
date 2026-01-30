@@ -23,13 +23,13 @@ Check user's project:
 
 ## TEMPLATES
 
-All templates are in the `templates/` subdirectory.
+Templates follow atomic design organization:
 
-| File | Use for |
-|------|---------|
-| useDrawers.ts | URL-synced drawer state management |
-| SlideUpDrawer.tsx | Bottom sheet with animations |
-| Drawer.tsx | Side panel (simpler alternative) |
+| File | Location | Use for |
+|------|----------|---------|
+| useDrawers.ts | `~/hooks/useDrawers` | URL-synced drawer state management |
+| Drawer.tsx | `~/molecules/drawer/Drawer` | Side panel (simpler alternative) |
+| SlideUpDrawer.tsx | `~/molecules/drawer/SlideUpDrawer` | Bottom sheet with animations |
 
 ## CORE PATTERNS
 
@@ -71,7 +71,7 @@ const MyComponent = () => {
 
 ```tsx
 import { useState } from "react";
-import Drawer from "~/components/Drawer";
+import Drawer from "~/molecules/drawer/Drawer";
 
 const MyComponent = () => {
   const [isOpen, setIsOpen] = useState(false);

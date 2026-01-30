@@ -120,7 +120,7 @@ export default Drawer;
 // EXAMPLE USAGE - BASIC
 // =============================================================================
 //
-// import Drawer from "~/components/Drawer";
+// import Drawer from "~/molecules/drawer/Drawer";
 // import { useState } from "react";
 //
 // const MyComponent = () => {
@@ -147,7 +147,7 @@ export default Drawer;
 // EXAMPLE USAGE - WITH URL STATE
 // =============================================================================
 //
-// import Drawer from "~/components/Drawer";
+// import Drawer from "~/molecules/drawer/Drawer";
 // import useDrawers from "~/hooks/useDrawers";
 //
 // const MyComponent = () => {
